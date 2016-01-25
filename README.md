@@ -90,8 +90,8 @@ agent_config:
     backend: "aws"
     region: "us-east-1"
     zone: "us-east-1c"
-    access_key_id: "AKIAI7EJE7WXRYL4JTIQ"
-    secret_access_key: "Wss0l0bBZ4d/RUSUKR0CTdNV4eXctE97+LOI0raQ"
+    access_key_id: "<Your AWS Key>"
+    secret_access_key: "<Your AWS Secre Key>"
 ```
 
 Hint: You can find the IPs easily with AWS CLI

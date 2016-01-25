@@ -115,7 +115,8 @@ uft-flocker-config flocker.yml
 
 Run the configuration script
 ```
-./../install-flocker/config_k8s_flocker.py flocker.yml
+cd /your/uft/cluster/dir
+./path/to/this/repo/dir/config_k8s_flocker.py flocker.yml
 ```
 
 Add your k8s master to your local DNS.

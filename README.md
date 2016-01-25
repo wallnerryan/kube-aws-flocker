@@ -66,7 +66,10 @@ You can find how to [get started with UFT Installer here](https://docs.clusterhq
 
 Create a `flocker.yaml`
 
-Example Flocker YAML. **Replace the public IPs, Private IPs, key location and Control Node. The control node DNS is your K8S Master DNS.
+Example Flocker YAML. 
+
+> **Replace the public IPs, Private IPs, key location and Control Node. The control node DNS is your K8S Master DNS.
+
 ```
 cluster_name: my-cluster
 agent_nodes:

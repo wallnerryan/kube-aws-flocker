@@ -39,6 +39,8 @@ kubernetes     10.0.0.50:443    19h
 redis-master   10.2.51.8:6379   11h
 ```
 
+Inspect the container running redis.
+```
 ip-10-0-0-234 ~ # docker logs 75054e6c7c46
                 _._
            _.-``__ ''-._

@@ -183,3 +183,49 @@ ip-10-0-0-231 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h
 10.2.64.6:6379>
 ```
 
+
+## Testing Migrations
+
+### Label a node
+```
+$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig label nodes ip-10-0-0-235.ec2.internal servertype=production
+node "ip-10-0-0-235.ec2.internal" labeled
+```
+
+```
+$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get no
+NAME                         LABELS                                                                    STATUS    AGE
+ip-10-0-0-231.ec2.internal   kubernetes.io/hostname=ip-10-0-0-231.ec2.internal                         Ready     9h
+ip-10-0-0-232.ec2.internal   kubernetes.io/hostname=ip-10-0-0-232.ec2.internal                         Ready     9h
+ip-10-0-0-233.ec2.internal   kubernetes.io/hostname=ip-10-0-0-233.ec2.internal                         Ready     9h
+ip-10-0-0-234.ec2.internal   kubernetes.io/hostname=ip-10-0-0-234.ec2.internal                         Ready     9h
+ip-10-0-0-235.ec2.internal   kubernetes.io/hostname=ip-10-0-0-235.ec2.internal,servertype=production   Ready     9h
+```
+
+### Add nodeSelector
+```
+spec:
+  containers: 
+    - name: "redis-slave"
+    image: "wallnerryan/redis-slave"
+    env:
+    - name: GET_HOSTS_FROM
+      value: env
+    ports: 
+      - name: "redis-server"
+        containerPort: 6379
+    volumeMounts:
+      - mountPath: "/var/lib/redis"
+        name: redis-master-data2
+  nodeSelector:
+    servertype: production
+```
+
+### Stop and Start your POD with the new Selector
+```
+kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig delete -f ../install-flocker/examples/redis/redis-slave-controller.yaml
+
+(Make your change to redis-slave-controller.yaml)
+
+kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig create -f ../install-flocker/examples/redis/redis-slave-controller.yaml
+```

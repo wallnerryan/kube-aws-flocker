@@ -24,10 +24,20 @@ redis-master-py3gn   0/1       ImageNotReady   0          20s
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get po
 NAME                 READY     STATUS    RESTARTS   AGE
 redis-master-pxvuh   1/1       Running   0          7m
+```
 
-
+Find the IP of the Redis Master
+```
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  describe po | grep IP:
-IP:				10.2.51.3
+IP:				10.2.51.8
+
+or
+
+$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get ep
+NAME           ENDPOINTS        AGE
+kubernetes     10.0.0.50:443    19h
+redis-master   10.2.51.8:6379   11h
+```
 
 ip-10-0-0-234 ~ # docker logs 75054e6c7c46
                 _._
@@ -58,9 +68,10 @@ ip-10-0-0-234 ~ #
 ```
 
 # Use Redis Single Master
+
 From the CoreOS node running the service
 ```
-ip-10-0-0-234 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h 10.2.51.3'
+ip-10-0-0-234 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h 10.2.51.8'
 10.2.51.3:6379>
 10.2.51.3:6379>
 10.2.51.3:6379>
@@ -170,6 +181,14 @@ ip-10-0-0-233 ~ # docker logs 6e6cd7bcd9e3
 
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  describe po redis-slave-ynpx4 | grep IP:
 IP:				10.2.64.6
+
+or 
+
+$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get ep
+NAME           ENDPOINTS        AGE
+kubernetes     10.0.0.50:443    19h
+redis-master   10.2.51.8:6379   11h
+redis-slave    10.2.64.6:6379   11h
 ```
 
 # Data is now on our Slave Redis Container, but also saved to persistent disk.

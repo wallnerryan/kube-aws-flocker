@@ -1,0 +1,34 @@
+kind: "ReplicationController"
+apiVersion: "v1"
+metadata: 
+  name: "redis-slave"
+  labels: 
+    app: "redis"
+    role: "slave"
+spec: 
+  replicas: 1
+  selector: 
+    app: "redis"
+    role: "slave"
+  template: 
+    metadata: 
+      labels: 
+        app: "redis"
+        role: "slave"
+    spec: 
+      containers: 
+        - name: "redis-slave"
+          image: "wallnerryan/redis-slave"
+          env:
+          - name: GET_HOSTS_FROM
+            value: env
+          ports: 
+            - name: "redis-server"
+              containerPort: 6379
+          volumeMounts:
+            - mountPath: "/var/lib/redis"
+              name: redis-master-data2
+      volumes:
+        - name: redis-master-data2
+          flocker:
+            datasetName: flocker-redis-master2

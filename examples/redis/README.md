@@ -39,6 +39,12 @@ kubernetes     10.0.0.50:443    19h
 redis-master   10.2.51.8:6379   11h
 ```
 
+Verify we have the correct sized volume
+```
+$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  exec redis-master-n8jop -- df -h | grep redis
+/dev/xvdf       9.8G   23M  9.2G   1% /var/lib/redis
+```
+
 Inspect the container running redis.
 ```
 ip-10-0-0-234 ~ # docker logs 75054e6c7c46
@@ -71,7 +77,24 @@ ip-10-0-0-234 ~ #
 
 # Use Redis Single Master
 
-From the CoreOS node running the service
+From KubeCTL
+```
+kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  exec redis-master-n8jop -c redis-slave -it -- /bin/bash
+root@redis-master-n8jop:/var/lib/redis# redis-cli -h 10.2.51.8 rpush mylist A
+root@redis-master-n8jop:/var/lib/redis# redis-cli -h 10.2.51.8 rpush mylist B
+root@redis-master-n8jop:/var/lib/redis# redis-cli -h 10.2.51.8 lpush mylist first
+root@redis-master-n8jop:/var/lib/redis# redis-cli -h 10.2.51.8 lpush mylist last
+root@redis-master-n8jop:/var/lib/redis# redis-cli -h 10.2.51.8 lrange mylist 0 -1
+1) "laste"
+2) "first"
+3) "A"
+4) "B"
+root@redis-master-n8jop:/var/lib/redis# exit
+exit
+$:->
+```
+
+Or from the CoreOS node running the service
 ```
 ip-10-0-0-234 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h 10.2.51.8'
 10.2.51.3:6379>
@@ -194,6 +217,21 @@ redis-slave    10.2.64.6:6379   11h
 ```
 
 # Data is now on our Slave Redis Container, but also saved to persistent disk.
+
+From KubeCTL
+```
+kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  exec redis-slave-ynpx4 -c redis-slave -it -- /bin/bash
+root@redis-slave-ynpx4:/var/lib/redis# redis-cli -h 10.2.64.6 lrange mylist 0 -1
+1) "last"
+2) "first"
+3) "A"
+4) "B"
+root@redis-slave-ynpx4:/var/lib/redis# exit
+exit
+$:->
+```
+
+Or from the CoreOS node where the redis-slave is running.
 ```
 ip-10-0-0-231 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h 10.2.64.6'
 10.2.64.6:6379> lrange mylist 0 -1

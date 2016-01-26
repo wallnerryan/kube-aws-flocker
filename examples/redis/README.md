@@ -235,7 +235,7 @@ Or from the CoreOS node where the redis-slave is running.
 ```
 ip-10-0-0-231 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h 10.2.64.6'
 10.2.64.6:6379> lrange mylist 0 -1
-1) "laste"
+1) "last"
 2) "first"
 3) "A"
 4) "B"
@@ -277,7 +277,7 @@ spec:
       - mountPath: "/var/lib/redis"
         name: redis-master-data2
   nodeSelector:
-    servertype: production
+    servertype: "production"
 ```
 
 ### Stop and Start your POD with the new Selector
@@ -287,4 +287,25 @@ kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig delete -f ../install-flo
 (Make your change to redis-slave-controller.yaml)
 
 kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig create -f ../install-flocker/examples/redis/redis-slave-controller.yaml
+```
+
+View our volume go to the "production" node (235)
+```
+$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get no
+NAME                         LABELS                                                                    STATUS    AGE
+...<snip>...
+ip-10-0-0-235.ec2.internal   kubernetes.io/hostname=ip-10-0-0-235.ec2.internal,servertype=production   Ready     20h
+
+$:-> flockerctl --control-service=ec2-52-2-176-38.compute-1.amazonaws.com list
+DATASET                                SIZE     METADATA                     STATUS         SERVER
+f0487599-e4d9-45d0-abcb-38b5b141f42a   10.00G   name=flocker-redis-master2   attached ✅   327e5227 (10.0.0.235)
+```
+
+Now that our node is on our production node we want to check it has its data
+```
+ubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  exec redis-slave-d8qdh -c redis-slave -- redis-cli -h 10.2.7.4 lrange mylist 0 -1
+last
+first
+A
+B
 ```

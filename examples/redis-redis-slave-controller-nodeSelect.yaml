@@ -28,6 +28,8 @@ spec:
           volumeMounts:
             - mountPath: "/var/lib/redis"
               name: redis-slave-data
+      nodeSelector:
+        servertype: "production"
       volumes:
         - name: redis-slave-data
           flocker:

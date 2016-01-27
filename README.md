@@ -37,6 +37,35 @@ Cluster Name:	my-k8s-cluster
 Controller IP:	52.72.122.10
 ```
 
+Add your k8s master to your local DNS.
+```
+$ kube-aws --config k8s.yaml status
+Cluster Name: my-k8s-cluster
+Controller IP:  52.72.122.10
+
+
+echo "52.72.122.10  my-k8s-master" | sudo tee -a /etc/hosts
+```
+
+Download the `kubtctl` tool to use k8s
+```
+# (WORKS FOR MAC OSX ONLY)
+wget https://storage.googleapis.com/kubernetes-release/release/v1.1.1/bin/darwin/amd64/kubectl
+chmod +x kubectl
+mv kubectl /usr/local/bin/
+```
+
+Use kubctl
+```
+$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get no
+NAME                         LABELS                                              STATUS    AGE
+ip-10-0-0-231.ec2.internal   kubernetes.io/hostname=ip-10-0-0-231.ec2.internal   Ready     26m
+ip-10-0-0-232.ec2.internal   kubernetes.io/hostname=ip-10-0-0-232.ec2.internal   Ready     26m
+ip-10-0-0-233.ec2.internal   kubernetes.io/hostname=ip-10-0-0-233.ec2.internal   Ready     21m
+ip-10-0-0-234.ec2.internal   kubernetes.io/hostname=ip-10-0-0-234.ec2.internal   Ready     26m
+ip-10-0-0-235.ec2.internal   kubernetes.io/hostname=ip-10-0-0-235.ec2.internal   Ready     26m
+```
+
 ### Step 3
 
 Find the security group ids for the `Controller` and `Worker` nodes. You can find then with `aws ec2` or in your AWS Console.
@@ -120,33 +149,4 @@ Run the configuration script
 ```
 cd /your/uft/cluster/dir
 ./path/to/this/repo/dir/config_k8s_flocker.py flocker.yml
-```
-
-Add your k8s master to your local DNS.
-```
-$ kube-aws --config k8s.yaml status
-Cluster Name:	my-k8s-cluster
-Controller IP:	52.72.122.10
-
-
-echo "52.72.122.10  my-k8s-master" | sudo tee -a /etc/hosts
-```
-
-Download the `kubtctl` tool to use k8s
-```
-# (WORKS FOR MAC OSX ONLY)
-wget https://storage.googleapis.com/kubernetes-release/release/v1.1.1/bin/darwin/amd64/kubectl
-chmod +x kubectl
-mv kubectl /usr/local/bin/
-```
-
-Use kubctl
-```
-$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get no
-NAME                         LABELS                                              STATUS    AGE
-ip-10-0-0-231.ec2.internal   kubernetes.io/hostname=ip-10-0-0-231.ec2.internal   Ready     26m
-ip-10-0-0-232.ec2.internal   kubernetes.io/hostname=ip-10-0-0-232.ec2.internal   Ready     26m
-ip-10-0-0-233.ec2.internal   kubernetes.io/hostname=ip-10-0-0-233.ec2.internal   Ready     21m
-ip-10-0-0-234.ec2.internal   kubernetes.io/hostname=ip-10-0-0-234.ec2.internal   Ready     26m
-ip-10-0-0-235.ec2.internal   kubernetes.io/hostname=ip-10-0-0-235.ec2.internal   Ready     26m
 ```

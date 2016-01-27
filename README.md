@@ -82,9 +82,6 @@ Open up flocker ports, and app ports (Redis)
 aws ec2 authorize-security-group-ingress --group-id sg-e68fdd9f --protocol tcp --port 4523-4524 --cidr 0.0.0.0/0
 
 aws ec2 authorize-security-group-ingress --group-id sg-e48fdd9d --protocol tcp --port 4523-4524 --cidr 0.0.0.0/0
-
-(Redis)
-aws ec2 authorize-security-group-ingress --group-id sg-e48fdd9d --protocol tcp --port 6300-6400 --cidr 0.0.0.0/0
 ```
 
 ### Step 4

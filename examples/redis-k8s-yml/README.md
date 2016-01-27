@@ -47,7 +47,7 @@ $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  exec redis-master-
 
 Inspect the container running redis.
 ```
-ip-10-0-0-234 ~ # docker logs 75054e6c7c46
+kubectl --kubeconfig=clusters/my-k8s-cluster-meetup/kubeconfig logs -c redis-master redis-master-472qt
                 _._
            _.-``__ ''-._
       _.-``    `.  `_.  ''-._           Redis 2.8.4 (00000000/0) 64 bit
@@ -68,6 +68,10 @@ ip-10-0-0-234 ~ # docker logs 75054e6c7c46
 
 [1] 26 Jan 04:10:24.682 # Server started, Redis version 2.8.4
 [1] 26 Jan 04:10:24.682 * The server is now ready to accept connections on port 6379
+```
+
+Inside the host running the container you can inspect the flocker volume
+```
 ip-10-0-0-234 ~ # ls /flocker/1a6c10bd-8628-4f9a-b3e5-72b5ac11a152/
 appendonly.aof  lost+found
 

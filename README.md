@@ -150,3 +150,16 @@ Run the configuration script
 cd /your/uft/cluster/dir
 ./path/to/this/repo/dir/config_k8s_flocker.py flocker.yml
 ```
+
+Set up flocker CTL
+```
+$:-> cp coreuser.crt user.crt
+$:-> cp coreuser.key user.key
+$:-> flockerctl --control-service=ec2-52-72-148-79.compute-1.amazonaws.com list-nodes
+SERVER     ADDRESS
+ffb06567   10.0.0.105
+211adc21   10.0.0.103
+0817d122   10.0.0.102
+72022b31   10.0.0.101
+0ec16ccc   10.0.0.104
+```

@@ -17,6 +17,10 @@ f0487599-e4d9-45d0-abcb-38b5b141f42a   10.00G   name=redis-slave   attached ✅ 
 ```
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig create -f ../install-flocker/examples/redis/redis-controller.yaml
 replicationcontroller "redis-master" created
+
+$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig create -f ../install-flocker/examples/redis/redis-service.yaml
+service "redis-master" created
+
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get po
 NAME                 READY     STATUS          RESTARTS   AGE
 redis-master-py3gn   0/1       ImageNotReady   0          20s
@@ -153,11 +157,11 @@ first
 
 ## Start the rest of the services
 ```
-$:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig create -f ../install-flocker/examples/redis/redis-service.yaml
-service "redis-master" created
-
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig create -f ../install-flocker/examples/redis/redis-slave-controller.yaml
 replicationcontroller "redis-slave" created
+
+$:-> kubectl --kubeconfig=clusters/my-k8s-cluster-meetup/kubeconfig create -f ../install-flocker/examples/redis/redis-slave-service.yaml
+service "redis-slave" created
 ```
 
 ## Watch Redis Slave SYNC

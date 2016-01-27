@@ -1,7 +1,7 @@
 
 # Rough Walkthrough
 ```
-$:-> flockerctl --control-service=ec2-52-2-176-38.compute-1.amazonaws.com create -m name=flocker-redis-master2 -s 10G -n 4b03576b
+$:-> flockerctl --control-service=ec2-52-2-176-38.compute-1.amazonaws.com create -m name=redis-slave -s 10G -n 4b03576b
 created dataset in configuration, manually poll state with 'flocker-volumes list' to see it show up.
 
 $:-> flockerctl --control-service=ec2-52-2-176-38.compute-1.amazonaws.com create -m name=flocker-redis-master -s 10G -n 4b03576b
@@ -9,7 +9,7 @@ created dataset in configuration, manually poll state with 'flocker-volumes list
 
 $:-> flockerctl --control-service=ec2-52-2-176-38.compute-1.amazonaws.com list
 DATASET                                SIZE     METADATA                     STATUS         SERVER
-f0487599-e4d9-45d0-abcb-38b5b141f42a   10.00G   name=flocker-redis-master2   attached ✅   4b03576b (10.0.0.231)
+f0487599-e4d9-45d0-abcb-38b5b141f42a   10.00G   name=redis-slave   attached ✅   4b03576b (10.0.0.231)
 1a6c10bd-8628-4f9a-b3e5-72b5ac11a152   10.00G   name=flocker-redis-master    attached ✅   4b03576b (10.0.0.231)
 ```
 

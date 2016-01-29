@@ -1,5 +1,5 @@
 
-## Installing Flocker on K8S Cluster build with [kube-aws](https://coreos.com/kubernetes/docs/latest/kubernetes-on-aws.html)
+## Installing [Flocker](https://clusterhq.com/flocker/introduction/) on K8S Cluster build with [kube-aws](https://coreos.com/kubernetes/docs/latest/kubernetes-on-aws.html)
 
 ### Step 1
 

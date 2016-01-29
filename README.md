@@ -3,7 +3,7 @@
 
 ### Step 1
 
-[Sign up for an Amazon AWS account](https://portal.aws.amazon.com/gp/aws/developer/registration/index.html)
+[Sign up for an Amazon AWS account](aws.amazon.com/free)
 
 Install [kube-aws](https://coreos.com/kubernetes/docs/latest/kubernetes-on-aws.html) on your local machine.
 

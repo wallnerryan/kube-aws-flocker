@@ -126,10 +126,11 @@ agent_config:
 Hint: You can find the IPs easily with AWS CLI
 ```
 (Public)
-aws ec2 describe-instances --filters Name=instance.group-id,Values=sg-e48fdd9d | grep PublicIpAddress | sed 's/\"//g' | sed 's/\,//g' |  tr -d " " | awk -F: '{print $2}'
+export WORKER_SECURITY_GROUP=sg-e48fdd9d
+aws ec2 describe-instances --filters Name=instance.group-id,Values=$WORKER_SECURITY_GROUP | grep PublicIpAddress | sed 's/\"//g' | sed 's/\,//g' |  tr -d " " | awk -F: '{print $2}'
 
 (Private)
-aws ec2 describe-instances --filters Name=instance.group-id,Values=sg-e48fdd9d | grep PrivateIpAddress | sed 's/\"//g' | sed 's/\,//g' |  tr -d " " | uniq -d | awk -F: '{print $2}'
+aws ec2 describe-instances --filters Name=instance.group-id,Values=$WORKER_SECURITY_GROUP | grep PrivateIpAddress | sed 's/\"//g' | sed 's/\,//g' |  tr -d " " | uniq -d | awk -F: '{print $2}'
 ```
 
 Install Flocker

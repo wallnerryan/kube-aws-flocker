@@ -41,7 +41,7 @@ def main(reactor, configFile):
     for public_ip in node_public_ips:
         # use the node IP to name the local files
         # so they do not overwrite each other
-        c.run("flocker-ca create-api-certificate %s-plugin" % (public_ip,))
+        c.run("flocker-ca create-api-certificate %s-api" % (public_ip,))
         log("Generated api certs for", public_ip)
 
     deferreds = []
@@ -49,7 +49,7 @@ def main(reactor, configFile):
     for public_ip in node_public_ips:
         # upload the .crt and .key
         for ext in ("crt", "key"):
-            d = c.scp("%s-plugin.%s" % (public_ip, ext,),
+            d = c.scp("%s-api.%s" % (public_ip, ext,),
                 public_ip, "/etc/flocker/api.%s" % (ext,), async=True)
             d.addCallback(report_completion, public_ip=public_ip, message=" * Uploaded api cert for")
             deferreds.append(d)

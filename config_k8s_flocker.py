@@ -104,7 +104,8 @@ sed  -i '/\[Service\]/aEnvironmentFile=/etc/flocker/env' /etc/systemd/system/kub
 
     deferreds = []
     if user == "ubuntu":
-        cmd = """echo
+        for public_ip in node_public_ips:
+            cmd = """echo
 systemctl restart kubelet;
 """
             d = c.runSSHAsync(public_ip, cmd)

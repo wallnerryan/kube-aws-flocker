@@ -57,8 +57,22 @@ def main(reactor, configFile):
     log("Uploaded api certs")
 
     deferreds = []
-    for public_ip in node_public_ips:
-        cmd = """echo 
+    if user == "ubuntu":
+        for public_ip in node_public_ips:
+            cmd = """echo 
+cat >> /etc/sysconfig/kubelet << EOF
+FLOCKER_CONTROL_SERVICE_HOST=%s\n
+FLOCKER_CONTROL_SERVICE_PORT=4523\n
+FLOCKER_CONTROL_SERVICE_CA_FILE=/etc/flocker/cluster.crt\n
+FLOCKER_CONTROL_SERVICE_CLIENT_KEY_FILE=/etc/flocker/api.key\n
+FLOCKER_CONTROL_SERVICE_CLIENT_CERT_FILE=/etc/flocker/api.crt
+EOF""" % c.config['control_node']
+            d = c.runSSHAsync(public_ip, cmd)
+            d.addCallback(report_completion, public_ip=public_ip, message="Enabled flocker ENVs for")
+            deferreds.append(d)
+    else:
+        for public_ip in node_public_ips:
+            cmd = """echo 
 cat > /etc/flocker/env << EOF
 FLOCKER_CONTROL_SERVICE_HOST=%s\n
 FLOCKER_CONTROL_SERVICE_PORT=4523\n
@@ -66,35 +80,47 @@ FLOCKER_CONTROL_SERVICE_CA_FILE=/etc/flocker/cluster.crt\n
 FLOCKER_CONTROL_SERVICE_CLIENT_KEY_FILE=/etc/flocker/api.key\n
 FLOCKER_CONTROL_SERVICE_CLIENT_CERT_FILE=/etc/flocker/api.crt
 EOF""" % c.config['control_node']
-        d = c.runSSHAsync(public_ip, cmd)
-        d.addCallback(report_completion, public_ip=public_ip, message="Enabled flocker ENVs for")
-        deferreds.append(d)
+            d = c.runSSHAsync(public_ip, cmd)
+            d.addCallback(report_completion, public_ip=public_ip, message="Enabled flocker ENVs for")
+            deferreds.append(d)
     yield gatherResults(deferreds)
     log("Uploaded Flocker ENV file.")
 
     deferreds = []
-    for public_ip in node_public_ips:
-        cmd = """echo
+    if user == "ubuntu":
+        # Do nothing, we dont place an ENV.
+        pass
+    else:
+        for public_ip in node_public_ips:
+            cmd = """echo
 sed -i -e 's,/usr/bin/kubelet,/root/kubelet,g' /etc/systemd/system/kubelet.service;
 sed  -i '/\[Service\]/aEnvironmentFile=/etc/flocker/env' /etc/systemd/system/kubelet.service
 """
-        d = c.runSSHAsync(public_ip, cmd)
-        d.addCallback(report_completion, public_ip=public_ip, message="Configured flocker ENVs for")
-        deferreds.append(d)
+            d = c.runSSHAsync(public_ip, cmd)
+            d.addCallback(report_completion, public_ip=public_ip, message="Configured flocker ENVs for")
+            deferreds.append(d)
     yield gatherResults(deferreds)
     log("Configured Flocker ENV file.")
 
     deferreds = []
-    for public_ip in node_public_ips:
+    if user == "ubuntu":
         cmd = """echo
+systemctl restart kubelet;
+"""
+            d = c.runSSHAsync(public_ip, cmd)
+            d.addCallback(report_completion, public_ip=public_ip, message="Restarted Kubelet for")
+            deferreds.append(d)
+    else:
+        for public_ip in node_public_ips:
+            cmd = """echo
 wget https://storage.googleapis.com/kubernetes-release/release/v1.1.1/bin/linux/amd64/kubelet;
  chmod +x kubelet;
  systemctl daemon-reload;
  systemctl restart kubelet;
 """
-        d = c.runSSHAsync(public_ip, cmd)
-        d.addCallback(report_completion, public_ip=public_ip, message="Restarted Kubelet for")
-        deferreds.append(d)
+            d = c.runSSHAsync(public_ip, cmd)
+            d.addCallback(report_completion, public_ip=public_ip, message="Restarted Kubelet for")
+            deferreds.append(d)
     yield gatherResults(deferreds)
     log("Restarted Kubelet")
 

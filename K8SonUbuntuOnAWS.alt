@@ -1,0 +1,251 @@
+### QuickStart: Setting up a Flocker + Kubernetes Cluster
+
+#### Step 1
+
+  > This QuickStart installs Kubernetes v1.1
+
+[Sign up for an Amazon AWS account](https://aws.amazon.com/free)
+
+Install Kubernetes on Ubuntu using [this guide](http://kubernetes.io/v1.1/docs/getting-started-guides/aws.html)
+
+#### Step 2
+
+Export some optional settings. 
+
+> NOTE: Using larger instance types will cost more. Also you do not need to set any of these options, they are defaulted. Lastly, make sure you have AWS CLI installed and configured.
+
+{% highlight bash %}
+export KUBE_AWS_ZONE=us-east-1c
+export NUM_MINIONS=3
+export MINION_SIZE=m3.medium
+export MASTER_SIZE=m3.medium
+export AWS_S3_REGION=us-east-1c
+{% endhighlight %}
+
+Create the Kubernetes Cluster
+
+> NOTE: You will need EC2 Full access and S3 Access for this process and it could take up to 10-15 minutes to complete.
+
+
+{% highlight bash %}
+export KUBERNETES_PROVIDER=aws; curl -sS https://get.k8s.io | bash
+{% endhighlight %}
+
+Example Output
+
+{% highlight bash %}
+Kubernetes cluster is running.  The master is running at:
+
+  https://54.175.188.62
+
+The user name and password to use is located in /Users/username/.kube/config.
+
+... calling validate-cluster
+Waiting for 2 ready nodes. 0 ready nodes, 2 registered. Retrying.
+Found 2 node(s).
+NAME                           LABELS                                                STATUS    AGE
+ip-172-20-0-103.ec2.internal   kubernetes.io/hostname=ip-172-20-0-103.ec2.internal   Ready     1h
+ip-172-20-0-104.ec2.internal   kubernetes.io/hostname=ip-172-20-0-104.ec2.internal   Ready     1h
+ip-172-20-0-105.ec2.internal   kubernetes.io/hostname=ip-172-20-0-105.ec2.internal   Ready     1h
+Validate output:
+NAME                 STATUS    MESSAGE              ERROR
+scheduler            Healthy   ok                   nil
+etcd-0               Healthy   {"health": "true"}   nil
+etcd-1               Healthy   {"health": "true"}   nil
+controller-manager   Healthy   ok                   nil
+Cluster validation succeeded
+Done, listing cluster services:
+
+Kubernetes master is running at https://54.175.188.62
+Elasticsearch is running at https://54.175.188.62/api/v1/proxy/namespaces/kube-system/services/elasticsearch-logging
+Heapster is running at https://54.175.188.62/api/v1/proxy/namespaces/kube-system/services/heapster
+Kibana is running at https://54.175.188.62/api/v1/proxy/namespaces/kube-system/services/kibana-logging
+KubeDNS is running at https://54.175.188.62/api/v1/proxy/namespaces/kube-system/services/kube-dns
+KubeUI is running at https://54.175.188.62/api/v1/proxy/namespaces/kube-system/services/kube-ui
+Grafana is running at https://54.175.188.62/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
+InfluxDB is running at https://54.175.188.62/api/v1/proxy/namespaces/kube-system/services/monitoring-influxdb
+
+Kubernetes binaries at /Users/username/kubernetes/cluster/
+You may want to add this directory to your PATH in $HOME/.profile
+Installation successful!
+{% endhighlight %}
+
+You can view your UI by going to the `KubeUI` URL above and entering your username and password from the `.kube/config` location.
+
+![KubeUI]({{ site.baseurl }}/assets/images/blog/kubeui.png){: .img70 }
+
+Download the `kubtctl` tool to use k8s
+
+Use `kubctl`
+
+> The `/Users/username/kubernetes/cluster/kubectl.sh` is from output above.
+
+{% highlight bash %}
+$ kubernetes/cluster/kubectl.sh get no
+NAME                           LABELS                                                STATUS    AGE
+ip-172-20-0-103.ec2.internal   kubernetes.io/hostname=ip-172-20-0-103.ec2.internal   Ready     1h
+ip-172-20-0-104.ec2.internal   kubernetes.io/hostname=ip-172-20-0-104.ec2.internal   Ready     1h
+ip-172-20-0-105.ec2.internal   kubernetes.io/hostname=ip-172-20-0-105.ec2.internal   Ready     1h
+{% endhighlight %}
+
+> NOTE: We suggest having a seperate node for your Flocker Control Service and Kubernetes Master Services.
+
+Create a seperate node for you Flocker Control Service
+
+> You can use the AWS Console Launch Wizard for this.
+
+Use the same AMI that the Kubernetes Install is using.
+
+![AMI]({{ site.baseurl }}/assets/images/blog/ami-k8subuntu.png){: .img90 }
+
+Launch in the correct VPC
+
+![VPC]({{ site.baseurl }}/assets/images/blog/vpc-k8subuntu.png){: .img70 }
+
+Use the same kubernetes KeyPair created with the above tool. It shuld look something like this.
+
+![KEYPAIR]({{ site.baseurl }}/assets/images/blog/keypair-k8subuntu.png){: .img70 }
+
+Add the security groups for kubernetes.
+
+![SECGROUPS]({{ site.baseurl }}/assets/images/blog/secgroups-k8subuntu.png){: .img70}
+
+Finally create an elastic IP for it and associate the control service.
+
+![DNS]({{ site.baseurl }}/assets/images/blog/dns-k8subuntu.png){: .img90}
+
+#### Step 3
+
+Find the security group ids for the `Master` and `Worker` nodes. You can find then with `aws ec2` or in your AWS Console.
+
+Examples
+
+{% highlight bash %}
+kubernetes-master-kubernetes --> id: sg-0b203872
+kubernetes-minion-kubernetes --> id: sg-fb203882
+{% endhighlight %}
+
+Open up Flocker ports, and app ports (Redis)
+
+{% highlight bash %}
+(Flocker)
+$ CONTROLLER_SEC_GROUP=sg-0b203872
+$ WORKER_SEC_GROUP=sg-fb203882
+$ aws ec2 authorize-security-group-ingress --group-id $CONTROLLER_SEC_GROUP --protocol tcp --port 4523-4524 --cidr 0.0.0.0/0
+
+$ aws ec2 authorize-security-group-ingress --group-id $WORKER_SEC_GROUP --protocol tcp --port 4523-4524 --cidr 0.0.0.0/0
+{% endhighlight %}
+
+#### Step 4
+
+Install the [Flocker CLI](https://docs.clusterhq.com/en/latest/flocker-features/flockerctl.html)and create a yaml file to install Flocker and Install Flocker
+
+Install CLI
+
+{% highlight bash %}
+$ curl -sSL https://get.flocker.io |sh
+{% endhighlight %}
+
+Create a `flocker.yaml`
+
+> Example Flocker YAML.
+>
+> You will need to replace the Public IPs, Private IPs, Amazon Key location
+> and Control Node DNS name.
+
+{% highlight bash %}
+cluster_name: my-cluster
+agent_nodes:
+ # Replace these PUBLIC and PRIVATE IPS!
+ - {public: 54.88.115.196, private: 172.20.0.103}
+ - {public: 54.208.144.177, private: 172.20.0.104}
+ - {public: 54.86.193.203, private: 172.20.0.105}
+
+control_node: ec2-52-72-122-10.compute-1.amazonaws.com # YOUR Control Node DNS
+users:
+ - ubuntu
+os: ubuntu
+private_key_path: /Users/username/.ssh/kube_aws_rsa #Your Pub Key for `kube_aws_rsa`
+agent_config:
+  version: 1
+  control-service:
+     hostname: ec2-52-72-122-10.compute-1.amazonaws.com # YOUR Control Node DNS.
+     port: 4524
+  dataset:
+    backend: "aws"
+    region: "<Your Amazon Region>" # YOUR AWS Region
+    zone: "<Your Amazon AvailabilityZone>" # YOUR AWS AvailabilityZone
+    access_key_id: "<Your AWS Key>" # YOUR AWS AccessKey
+    secret_access_key: "<Your AWS Secre Key>" # YOUR AWS SecretAccessKey
+{% endhighlight %}
+
+> Hint: You can find the IPs easily with the AWS CLI if you want. Examples below.
+
+{% highlight bash %}
+# (Controller IP)
+$ aws ec2 describe-instances --filter Name=tag:Name,Values=kubernetes-master | grep -A1 "PublicIpAddress"
+
+"PublicIpAddress": "52.21.59.241",
+"PrivateIpAddress": "10.0.0.50",
+
+# (Controller DNS)
+$ aws ec2 describe-instances --filter Name=tag:Name,Values=kubernetes-master | grep -m 2 -e "PublicDnsName"
+
+"PublicDnsName": "ec2-52-21-59-241.compute-1.amazonaws.com",
+
+# (Woker Node IPs)
+$ aws ec2 describe-instances --filter Name=tag:Name,Values=kubernetes-minion | grep -A1 "PublicIpAddress"
+
+"PublicIpAddress": "54.174.43.105",
+"PrivateIpAddress": "172.20.0.98",
+
+"PublicIpAddress": "54.88.98.217",
+"PrivateIpAddress": "172.20.0.99",
+{% endhighlight %}
+
+**Once your `flocker.yaml` file is complete, install Flocker with these commands.**
+
+{% highlight bash %}
+$ uft-flocker-install flocker.yaml
+$ uft-flocker-config flocker.yaml
+$ uft-flocker-plugin-install flocker.yaml
+{% endhighlight %}
+
+> `uft-flocker-config` might take a while as it needs to download containers
+
+#### Configure your Flocker + K8S Cluster to use Flocker
+
+> NOTE: You can follow manual instruction for configuration flocker [HERE](http://kubernetes.io/v1.1/examples/flocker/) or use the script below to for automation.
+
+Run the configuration script
+
+> You will need Python Twisted, and Python YAML installed to run this script.
+
+{% highlight bash %}
+$ git clone https://github.com/wallnerryan/kube-aws-flocker
+$ .//kube-aws-flocker/config_k8s_flocker.py flocker.yaml
+{% endhighlight %}
+
+You should see output like the following if succesful.
+
+{% highlight bash %}
+.
+.
+Uploaded api certs
+Enabled flocker ENVs for 54.86.193.203
+Enabled flocker ENVs for 54.208.144.177
+Enabled flocker ENVs for 54.88.115.196
+Uploaded Flocker ENV file.
+Configured Flocker ENV file.
+Restarted Kubelet for 54.86.193.203
+Restarted Kubelet for 54.208.144.177
+Restarted Kubelet for 54.88.115.196
+Restarted Kubelet
+Completed
+{% endhighlight %}
+
+Make sure you certs are correct so you can use `flockerctl` against your cluster.
+{% highlight bash %}
+$ cp ubuntu.crt user.crt
+$ cp ubuntu.key user.key
+{% endhighlight %}

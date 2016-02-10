@@ -31,7 +31,11 @@ def main(reactor, configFile):
     # Gather IPs of all nodes
     nodes = c.config["agent_nodes"]
     node_public_ips = [n["public"] for n in nodes]
-    node_public_ips.append(c.config["control_node"])
+    
+    # This assumes that your control node is a kubernetes node
+    # In practice its likely your flocker control node will remain
+    # seperate, so lets remove it.
+    #node_public_ips.append(c.config["control_node"])
 
     # Wait for all nodes to boot
     yield gatherResults([verify_socket(ip, 22, timeout=600) for ip in node_public_ips])

@@ -1,6 +1,6 @@
 
 # Rough Walkthrough
-```
+```sh
 $:-> flockerctl --control-service=ec2-52-2-176-38.compute-1.amazonaws.com create -m name=redis-slave -s 10G -n 4b03576b
 created dataset in configuration, manually poll state with 'flocker-volumes list' to see it show up.
 
@@ -13,8 +13,8 @@ f0487599-e4d9-45d0-abcb-38b5b141f42a   10.00G   name=redis-slave   attached ✅ 
 1a6c10bd-8628-4f9a-b3e5-72b5ac11a152   10.00G   name=flocker-redis-master    attached ✅   4b03576b (10.0.0.231)
 ```
 
-# Srart Services
-```
+# Start Services
+```sh
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig create -f ../install-flocker/examples/redis/redis-controller.yaml
 replicationcontroller "redis-master" created
 
@@ -31,7 +31,7 @@ redis-master-pxvuh   1/1       Running   0          7m
 ```
 
 Find the IP of the Redis Master
-```
+```sh
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  describe po | grep IP:
 IP:				10.2.51.8
 
@@ -44,13 +44,13 @@ redis-master   10.2.51.8:6379   11h
 ```
 
 Verify we have the correct sized volume
-```
+```sh
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  exec redis-master-n8jop -- df -h | grep redis
 /dev/xvdf       9.8G   23M  9.2G   1% /var/lib/redis
 ```
 
 Inspect the container running redis.
-```
+```sh
 kubectl --kubeconfig=clusters/my-k8s-cluster-meetup/kubeconfig logs -c redis-master redis-master-472qt
                 _._
            _.-``__ ''-._
@@ -75,7 +75,7 @@ kubectl --kubeconfig=clusters/my-k8s-cluster-meetup/kubeconfig logs -c redis-mas
 ```
 
 Inside the host running the container you can inspect the flocker volume
-```
+```sh
 ip-10-0-0-234 ~ # ls /flocker/1a6c10bd-8628-4f9a-b3e5-72b5ac11a152/
 appendonly.aof  lost+found
 
@@ -86,7 +86,7 @@ ip-10-0-0-234 ~ #
 # Use Redis Single Master
 
 From KubeCTL
-```
+```sh
 kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  exec redis-master-n8jop -c redis-slave -it -- /bin/bash
 root@redis-master-n8jop:/var/lib/redis# redis-cli -h 10.2.51.8 rpush mylist A
 root@redis-master-n8jop:/var/lib/redis# redis-cli -h 10.2.51.8 rpush mylist B
@@ -103,7 +103,7 @@ $:->
 ```
 
 Or from the CoreOS node running the service
-```
+```sh
 ip-10-0-0-234 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h 10.2.51.8'
 10.2.51.3:6379>
 10.2.51.3:6379>
@@ -125,7 +125,7 @@ ip-10-0-0-234 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h
 ```
 
 Now lets check out file again.
-```
+```sh
 ip-10-0-0-234 ~ # cat /flocker/1a6c10bd-8628-4f9a-b3e5-72b5ac11a152/appendonly.aof
 *2
 $6
@@ -156,7 +156,7 @@ first
 ```
 
 ## Start the rest of the services
-```
+```sh
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig create -f ../install-flocker/examples/redis/redis-slave-controller.yaml
 replicationcontroller "redis-slave" created
 
@@ -165,7 +165,7 @@ service "redis-slave" created
 ```
 
 ## Watch Redis Slave SYNC
-```
+```sh
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get po
 NAME                 READY     STATUS    RESTARTS   AGE
 redis-master-n8jop   1/1       Running   0          26m
@@ -227,7 +227,7 @@ redis-slave    10.2.64.6:6379   11h
 # Data is now on our Slave Redis Container, but also saved to persistent disk.
 
 From KubeCTL
-```
+```sh
 kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  exec redis-slave-ynpx4 -c redis-slave -it -- /bin/bash
 root@redis-slave-ynpx4:/var/lib/redis# redis-cli -h 10.2.64.6 lrange mylist 0 -1
 1) "last"
@@ -240,7 +240,7 @@ $:->
 ```
 
 Or from the CoreOS node where the redis-slave is running.
-```
+```sh
 ip-10-0-0-231 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h 10.2.64.6'
 10.2.64.6:6379> lrange mylist 0 -1
 1) "last"
@@ -254,12 +254,12 @@ ip-10-0-0-231 ~ # docker run -it --rm wallnerryan/redis sh -c 'exec redis-cli -h
 ## Testing Migrations
 
 ### Label a node
-```
+```sh
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig label nodes ip-10-0-0-235.ec2.internal servertype=production
 node "ip-10-0-0-235.ec2.internal" labeled
 ```
 
-```
+```sh
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get no
 NAME                         LABELS                                                                    STATUS    AGE
 ip-10-0-0-231.ec2.internal   kubernetes.io/hostname=ip-10-0-0-231.ec2.internal                         Ready     9h
@@ -289,7 +289,7 @@ spec:
 ```
 
 ### Stop and Start your POD with the new Selector
-```
+```sh
 kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig delete -f ../install-flocker/examples/redis/redis-slave-controller.yaml
 
 (Make your change to redis-slave-controller.yaml)
@@ -298,7 +298,7 @@ kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig create -f ../install-flo
 ```
 
 View our volume go to the "production" node (235)
-```
+```sh
 $:-> kubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  get no
 NAME                         LABELS                                                                    STATUS    AGE
 ...<snip>...
@@ -310,7 +310,7 @@ f0487599-e4d9-45d0-abcb-38b5b141f42a   10.00G   name=flocker-redis-master2   att
 ```
 
 Now that our node is on our production node we want to check it has its data
-```
+```sh
 ubectl --kubeconfig=clusters/my-k8s-cluster/kubeconfig  exec redis-slave-d8qdh -c redis-slave -- redis-cli -h 10.2.7.4 lrange mylist 0 -1
 last
 first

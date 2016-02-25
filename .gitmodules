@@ -1,0 +1,6 @@
+[submodule "examples/dockercon-tweets-stream"]
+	path = examples/dockercon-tweets-stream
+	url = https://github.com/wallnerryan/dockercon-tweets-stream
+[submodule "examples/dockercon-tweets-web"]
+	path = examples/dockercon-tweets-web
+	url = https://github.com/wallnerryan/dockercon-tweets-web

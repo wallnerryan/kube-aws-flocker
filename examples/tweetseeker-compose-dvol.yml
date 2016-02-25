@@ -1,0 +1,31 @@
+version: '2'
+services:
+  web:
+    image: wallnerryan/tweets-web
+    ports:
+      - 80:8080
+    environment:
+        MONGODB_SERVICE_SERVICE_HOST: "192.168.99.100"
+    depends_on:
+      - mongo
+  stream:
+    image: wallnerryan/tweets-stream
+    environment:
+        TWITTER_TRACK: "#twitter"
+        CONSUMER_KEY: "<INSERT>"
+        CONSUMER_SECRET: "<INSERT>"
+        ACCESS_TOKEN_KEY: "<INSERT>"
+        ACCESS_TOKEN_SECRET: "<INSERT>"
+        MONGODB_SERVICE_SERVICE_HOST: "192.168.99.100"
+    depends_on:
+      - mongo
+  mongo:
+    image: clusterhq/mongodb
+    ports:
+    - 27017:27017
+    volumes:
+    - "mongodb:/data/db"
+
+volumes:
+  mongodb:
+    driver: dvol

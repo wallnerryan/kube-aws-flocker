@@ -43,7 +43,7 @@ spec:
         - name: GET_HOSTS_FROM
           value: env
         - name: TWITTER_TRACK
-          value: "#DockerCon"
+          value: "#twitter"
         - name: CONSUMER_KEY
           value: "<INSERT>"
         - name: CONSUMER_SECRET

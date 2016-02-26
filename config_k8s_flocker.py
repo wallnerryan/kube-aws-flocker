@@ -61,6 +61,8 @@ def main(reactor, configFile):
     log("Uploaded api certs")
 
     deferreds = []
+    # THIS WILL ONLY WORK WITH SYSTEMD BASES UBUNTU 15.04+
+    # Ubuntu 14.04 uses /etc/default/kubelet and service kubelet restart
     if user == "ubuntu":
         for public_ip in node_public_ips:
             cmd = """echo 

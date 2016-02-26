@@ -34,6 +34,9 @@ spec:
         - containerPort: 8080
           hostPort: 80
           protocol: TCP
+        env:
+        - name: GET_HOSTS_FROM
+          value: env
       - name: tweetstreamer
         image: wallnerryan/dockercon-tweets-stream
         env:

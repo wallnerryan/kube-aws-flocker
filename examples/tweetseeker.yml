@@ -12,20 +12,6 @@ spec:
   selector:
     app: tweetseeker
 ---
-apiVersion: "v1"
-kind: "Service"
-metadata: 
-  name: "mongodb-service"
-  labels: 
-    app: "mongodb"
-spec: 
-  ports: 
-    - 
-      port: 27017
-      targetPort: "mongo-server"
-  selector: 
-    app: "mongodb"
----
 apiVersion: v1
 kind: ReplicationController
 metadata:
@@ -63,16 +49,3 @@ spec:
           value: "<INSERT>"
         - name: ACCESS_TOKEN_SECRET
           value: "<INSERT>"
-      - name: mongodb
-        image: clusterhq/mongodb
-        ports:
-        - name: "mongo-server"
-          containerPort: 27017
-        volumeMounts:
-          # name must match the volume name below
-          - name: tweetdata
-            mountPath: "/data/db"
-      volumes:
-        - name: tweetdata
-          flocker:
-            datasetName: FlockerVolume1

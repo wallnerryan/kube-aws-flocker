@@ -7,8 +7,8 @@ metadata:
 spec:
   ports:
     # the port that this service should serve on
-  - port: 80
-    targetPort: 80
+  - port: 8888
+    targetPort: "tweetsweb1"
   selector:
     app: tweetseeker
 ---
@@ -29,16 +29,17 @@ spec:
     spec:
       containers:
       - name: tweetsweb
-        image: wallnerryan/dockercon-tweets-web
+        image: wallnerryan/tweets-web
         ports:
-        - containerPort: 8080
-          hostPort: 80
+        - name: tweetsweb1
+          containerPort: 8080
+          hostPort: 8888
           protocol: TCP
         env:
-        - name: GET_HOSTS_FROM
-          value: env
+        - name: MONGODB_SERVICE_SERVICE_HOST
+          value: "<insert mongodb service ep>"
       - name: tweetstreamer
-        image: wallnerryan/dockercon-tweets-stream
+        image: wallnerryan/tweets-stream
         env:
         - name: GET_HOSTS_FROM
           value: env
@@ -52,3 +53,5 @@ spec:
           value: "<INSERT>"
         - name: ACCESS_TOKEN_SECRET
           value: "<INSERT>"
+        - name: MONGODB_SERVICE_SERVICE_HOST
+          value: "<insert mongodb service ep>"

@@ -3,18 +3,19 @@ kind: "Service"
 metadata:
   name: "mongodb-service"
   labels:
-    app: "mongodb"
+    app: "tweetseeker-mongodb"
 spec:
   ports:
     -
       port: 27017
+      targetPort: "mongodb-port"
   selector:
-    app: "mongodb"
+    app: "tweetseeker-mongodb"
 ---
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: tweetseeker-mongo
+  name: tweetseeker-mongodb
   # these labels can be applied automatically
   # from the labels in the pod template if not set
   labels:
@@ -24,17 +25,14 @@ spec:
   template:
     metadata:
       labels:
-        app: tweetseeker-mongo
+        app: tweetseeker-mongodb
     spec:
       containers:
       - name: mongodb
         image: clusterhq/mongodb
         ports:
-          -
+          - name: mongodb-port
             containerPort: 27017
-        env:
-          - name: GET_HOSTS_FROM
-            value: env
         volumeMounts:
           # name must match the volume name below
           - name: tweetdata
@@ -42,4 +40,4 @@ spec:
       volumes:
         - name: tweetdata
           flocker:
-            datasetName: FlockerVolume6
+            datasetName: testvol004

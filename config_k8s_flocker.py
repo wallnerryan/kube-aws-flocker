@@ -21,6 +21,8 @@ class UsageError(Exception):
 def main(reactor, configFile):
     c = Configurator(configFile=configFile)
 
+    user = ""
+    
     if c.config["os"] == "ubuntu":
         user = "ubuntu"
     elif c.config["os"] == "centos":
